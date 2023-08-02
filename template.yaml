@@ -36,51 +36,56 @@ Resources:
         paths:
           /bitacora-service/{proxy+}:
             options:
-              consumes:
-                - "application/json"
-              produces:
-                - "application/json"
+              parameters:
+                - name: "proxy"
+                  in: "path"
+                  required: true
+                  schema:
+                    type: "string"
               responses:
                 "200":
                   description: "200 response"
-                  schema:
-                    $ref: "#/definitions/Empty"
                   headers:
                     Access-Control-Allow-Origin:
-                      type: "string"
+                      schema:
+                        type: "string"
                     Access-Control-Allow-Methods:
-                      type: "string"
+                      schema:
+                        type: "string"
                     Access-Control-Allow-Headers:
-                      type: "string"
+                      schema:
+                        type: "string"
+                  content:
+                    application/json:
+                      schema:
+                        $ref: "#/components/schemas/Empty"
               x-amazon-apigateway-integration:
                 responses:
                   default:
                     statusCode: "200"
                     responseParameters:
                       method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
-                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
                       method.response.header.Access-Control-Allow-Origin: "'*'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
                 requestTemplates:
                   application/json: "{\"statusCode\": 200}"
                 passthroughBehavior: "when_no_match"
                 type: "mock"
             x-amazon-apigateway-any-method:
-              produces:
-                - "application/json"
               parameters:
                 - name: "proxy"
                   in: "path"
                   required: true
-                  type: "string"
-              responses: { }
+                  schema:
+                    type: "string"
               x-amazon-apigateway-integration:
                 httpMethod: "POST"
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:bitacora-service-${env}-entrypoint/invocations"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:user-service-${env}-entrypoint/invocations"
                 responses:
                   default:
                     statusCode: "200"
                 passthroughBehavior: "when_no_match"
-                cacheNamespace: "cscnv9"
+                cacheNamespace: "c16yjg"
                 cacheKeyParameters:
                   - "method.request.path.proxy"
                 contentHandling: "CONVERT_TO_TEXT"
