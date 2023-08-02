@@ -1,0 +1,215 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Api gateway and edge related components
+
+Parameters:
+  env:
+    Description: env
+    Type: String
+    AllowedValues:
+      - dev
+      - stag
+      - prod
+    Default: dev
+  buildNumber:
+    Description: build number
+    Type: String
+  wafId:
+    Description: the id of the WAF configured for this gateway
+    Type: String
+  acmCertificateId:
+    Description: the certificate id for that domain
+    Type: String
+
+Resources:
+  BitacoraApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Tags:
+        - Key: app
+          Value: !Sub "bitacora"
+        - Key: env
+          Value: !Sub "${env}"
+      Description: !Sub "[${env}] REST API for the Nomoko platform"
+      Name: !Sub "${env}-api-platform"
+      DisableExecuteApiEndpoint: false
+      MinimumCompressionSize: 10240 # Everything bigger than 10KB gets compressed
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Body:
+        openapi: "3.0.1"
+        paths:
+          /bitacora-service/{proxy+}:
+            options:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: "{\"statusCode\": 200}"
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+            x-amazon-apigateway-any-method:
+              produces:
+                - "application/json"
+              parameters:
+                - name: "proxy"
+                  in: "path"
+                  required: true
+                  type: "string"
+              responses: { }
+              x-amazon-apigateway-integration:
+                httpMethod: "POST"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:coordinates-service-${env}-entrypoint/invocations"
+                responses:
+                  default:
+                    statusCode: "200"
+                passthroughBehavior: "when_no_match"
+                cacheNamespace: "cscnv9"
+                cacheKeyParameters:
+                  - "method.request.path.proxy"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws_proxy"
+
+            options:
+              consumes:
+                - "application/json"
+              produces:
+                - "application/json"
+              responses:
+                "200":
+                  description: "200 response"
+                  schema:
+                    $ref: "#/definitions/Empty"
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: "string"
+                    Access-Control-Allow-Methods:
+                      type: "string"
+                    Access-Control-Allow-Headers:
+                      type: "string"
+              x-amazon-apigateway-integration:
+                responses:
+                  default:
+                    statusCode: "200"
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Methods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+                      method.response.header.Access-Control-Allow-Headers: "'Content-Type,Authorization,X-Amz-Date,X-Api-Key,X-Amz-Security-Token'"
+                      method.response.header.Access-Control-Allow-Origin: "'*'"
+                requestTemplates:
+                  application/json: "{\"statusCode\": 200}"
+                passthroughBehavior: "when_no_match"
+                type: "mock"
+            x-amazon-apigateway-any-method:
+              produces:
+                - "application/json"
+              parameters:
+                - name: "proxy"
+                  in: "path"
+                  required: true
+                  type: "string"
+              responses: { }
+              security:
+                - request_authorizer_query: [ ]
+              x-amazon-apigateway-integration:
+                httpMethod: "POST"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:upload-service-${env}-entrypoint/invocations"
+                responses:
+                  default:
+                    statusCode: "200"
+                passthroughBehavior: "when_no_match"
+                cacheNamespace: "cscnv9"
+                cacheKeyParameters:
+                  - "method.request.path.proxy"
+                contentHandling: "CONVERT_TO_TEXT"
+                type: "aws_proxy"
+                requestTemplates:
+                  application/json: "{ \"requestContext\": { \"authorizer\": { \"claims\": { \"userId\": \"$context.authorizer.userId\" } } } }"
+        components:
+          schemas:
+            Empty:
+              title: "Generic error"
+              type: "object"
+              properties:
+                code:
+                  type: "string"
+                message:
+                  type: "string"
+            GenericError:
+              title: "Generic error"
+              type: "object"
+              properties:
+                errorCode:
+                  type: "string"
+                message:
+                  type: "string"
+        x-amazon-apigateway-gateway-responses:
+          DEFAULT_5XX:
+            responseParameters:
+              gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,PATCH,DELETE,PUT'"
+              gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+          DEFAULT_4XX:
+            responseParameters:
+              gatewayresponse.header.Access-Control-Allow-Methods: "'GET,OPTIONS,PATCH,DELETE,PUT'"
+              gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+              gatewayresponse.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+
+  BitacoraDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - PlatformApi
+    Properties: # When making changes here it will deploy a very old version IDK why. You need to redeploy the latest one manually in the console, in the stage configuration part.
+      RestApiId: !Ref BitacoraApi
+      StageName: !Sub "${env}"
+      Description: !Sub "${buildNumber}"
+      StageDescription:
+        ThrottlingRateLimit: 5
+        ThrottlingBurstLimit: 7
+        Description: !Sub "${buildNumber}"
+        Variables:
+          env: !Sub "${env}"
+        Tags:
+          - Key: app
+            Value: !Sub "bitacora"
+          - Key: env
+            Value: !Sub "${env}"
+
+#Need to fix ApiGatewayWaf, this block/resource only works if the api gateway has been deployed already
+  ApiGatewayWaf:
+    DependsOn:
+      - BitacoraApi
+      - BitacoraDeployment
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${BitacoraApi}/stages/${env}"
+      WebACLArn: !Sub "arn:aws:wafv2:${AWS::Region}:${AWS::AccountId}:regional/webacl/bitacora-api-${env}/${wafId}"
+
+  BitacoraService:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Sub "coordinates-service-${env}-entrypoint"
+      Principal: apigateway.amazonaws.com
+
