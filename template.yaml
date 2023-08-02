@@ -14,9 +14,6 @@ Parameters:
   buildNumber:
     Description: build number
     Type: String
-  wafId:
-    Description: the id of the WAF configured for this gateway
-    Type: String
 
 Resources:
   BitacoraApi:
