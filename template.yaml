@@ -8,7 +8,6 @@ Parameters:
     Type: String
     AllowedValues:
       - dev
-      - stag
       - prod
     Default: dev
   buildNumber:
@@ -80,7 +79,7 @@ Resources:
                     type: "string"
               x-amazon-apigateway-integration:
                 httpMethod: "POST"
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:user-service-${env}-entrypoint/invocations"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:bitacora-service-${env}-entrypoint/invocations"
                 responses:
                   default:
                     statusCode: "200"
