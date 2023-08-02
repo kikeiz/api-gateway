@@ -31,7 +31,7 @@ Resources:
         - Key: env
           Value: !Sub "${env}"
       Description: !Sub "[${env}] REST API for the Nomoko platform"
-      Name: !Sub "${env}-api-platform"
+      Name: !Sub "${env}-api-bitacora"
       DisableExecuteApiEndpoint: false
       MinimumCompressionSize: 10240 # Everything bigger than 10KB gets compressed
       EndpointConfiguration:
