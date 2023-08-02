@@ -75,7 +75,7 @@ Resources:
               responses: { }
               x-amazon-apigateway-integration:
                 httpMethod: "POST"
-                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:coordinates-service-${env}-entrypoint/invocations"
+                uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:bitacora-service-${env}-entrypoint/invocations"
                 responses:
                   default:
                     statusCode: "200"
@@ -139,6 +139,6 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Sub "coordinates-service-${env}-entrypoint"
+      FunctionName: !Sub "bitacora-service-${env}-entrypoint"
       Principal: apigateway.amazonaws.com
 
