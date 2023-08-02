@@ -1,0 +1,40 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment'
+        type: string
+        options:
+        - prod
+
+env:
+  DEPLOY_ENV: ${{ github.event.inputs.environment || 'dev' }}
+  REGION: us-west-2
+
+jobs:
+  build-deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    environment: $DEPLOY_ENV
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+      - uses: aws-actions/setup-sam@v1
+      - name: Tag version
+        uses: tvdias/github-tagger@v0.0.1
+        with:
+          repo-token: ${{ secrets.ACCESS_TOKEN }}
+          tag: ${{ env.DEPLOY_ENV }}-${{ github.run_id }}
+      - uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.REGION }}
+      - run: sam build --use-container
+      - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name api-gateway --s3-bucket example-bucket-apg
