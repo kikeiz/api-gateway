@@ -30,7 +30,7 @@ Resources:
           Value: !Sub "bitacora"
         - Key: env
           Value: !Sub "${env}"
-      Description: !Sub "[${env}] REST API for the Nomoko platform"
+      Description: !Sub "[${env}] REST API for the Bitacora Application"
       Name: !Sub "${env}-api-bitacora"
       DisableExecuteApiEndpoint: false
       MinimumCompressionSize: 10240 # Everything bigger than 10KB gets compressed
@@ -124,7 +124,7 @@ Resources:
   BitacoraDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
-      - PlatformApi
+      - BitacoraApi
     Properties: # When making changes here it will deploy a very old version IDK why. You need to redeploy the latest one manually in the console, in the stage configuration part.
       RestApiId: !Ref BitacoraApi
       StageName: !Sub "${env}"
