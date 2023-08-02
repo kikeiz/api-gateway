@@ -17,9 +17,6 @@ Parameters:
   wafId:
     Description: the id of the WAF configured for this gateway
     Type: String
-  acmCertificateId:
-    Description: the certificate id for that domain
-    Type: String
 
 Resources:
   BitacoraApi:
@@ -140,16 +137,6 @@ Resources:
             Value: !Sub "bitacora"
           - Key: env
             Value: !Sub "${env}"
-
-#Need to fix ApiGatewayWaf, this block/resource only works if the api gateway has been deployed already
-  ApiGatewayWaf:
-    DependsOn:
-      - BitacoraApi
-      - BitacoraDeployment
-    Type: AWS::WAFv2::WebACLAssociation
-    Properties:
-      ResourceArn: !Sub "arn:aws:apigateway:${AWS::Region}::/restapis/${BitacoraApi}/stages/${env}"
-      WebACLArn: !Sub "arn:aws:wafv2:${AWS::Region}:${AWS::AccountId}:regional/webacl/bitacora-api-${env}/${wafId}"
 
   BitacoraService:
     Type: AWS::Lambda::Permission
