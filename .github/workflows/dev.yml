@@ -40,5 +40,5 @@ jobs:
         run: sam build --use-container
       - name: Deploy API Gateway
         run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name api-gateway --s3-bucket example-bucket-apg --parameter-overrides \
-              env=dev \
+              env=${{ env.DEPLOY_ENV }} \
               buildNumber=${{ github.run_id }}
